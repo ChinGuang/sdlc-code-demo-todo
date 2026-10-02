@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { getJson } from "../api.js";
 
 export type Todo = {
@@ -23,30 +24,19 @@ export function TodoScreen() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) {
-    return (
-      <section>
-        <h1 className="text-4xl font-semibold">Todos</h1>
-        <p className="mt-4 text-slate-400">Loading todos...</p>
-      </section>
-    );
-  }
-
-  if (error) {
-    return (
-      <section>
-        <h1 className="text-4xl font-semibold">Todos</h1>
-        <p className="mt-4 text-slate-400">
-          Could not load todos: {error}
-        </p>
-      </section>
-    );
-  }
-
   return (
     <section>
       <h1 className="text-4xl font-semibold">Todos</h1>
-      {todos.length === 0 ? (
+      <Link to="/create" className="mt-4 inline-block px-4 py-2 bg-accent text-white rounded hover:bg-accent/80 transition">
+        Add Todo
+      </Link>
+      {loading ? (
+        <p className="mt-4 text-slate-400">Loading todos...</p>
+      ) : error ? (
+        <p className="mt-4 text-slate-400">
+          Could not load todos: {error}
+        </p>
+      ) : todos.length === 0 ? (
         <p className="mt-4 text-slate-400">No todos yet.</p>
       ) : (
         <ul className="mt-4 space-y-2">

@@ -1,6 +1,8 @@
 import request from "supertest";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { createApp, route } from "./app.js";
+import { prisma } from "./prisma.js";
+import { registerTodosRoutes } from "./todos.js";
 
 describe("GET /health", () => {
   it("reports the API and its database", async () => {
@@ -11,7 +13,6 @@ describe("GET /health", () => {
   });
 
   it("reports degraded when database is down", async () => {
-    const { prisma } = await import("./prisma.js");
     vi.spyOn(prisma, "$queryRaw").mockRejectedValueOnce(new Error());
     const app = createApp();
     const response = await request(app).get("/health");
@@ -57,5 +58,54 @@ describe("a route that throws", () => {
     expect(response.body).toEqual({ error: "Internal Server Error" });
     expect(JSON.stringify(response.body)).not.toMatch(/hunter2|at Object|\.ts:/);
     vi.restoreAllMocks();
+  });
+});
+
+describe("GET /todos", () => {
+  beforeEach(async () => {
+    await prisma.todo.deleteMany();
+  });
+
+  afterEach(async () => {
+    await prisma.todo.deleteMany();
+  });
+
+  it("returns an empty list when there are no todos", async () => {
+    const response = await request(createApp(registerTodosRoutes)).get("/todos");
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual([]);
+  });
+
+  it("returns a list of todos", async () => {
+    await prisma.todo.createMany({
+      data: [
+        { title: "First todo", completed: false },
+        { title: "Second todo", completed: true },
+      ],
+    });
+
+    const response = await request(createApp(registerTodosRoutes)).get("/todos");
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(2);
+    // Check shape of each todo
+    const [first, second] = response.body;
+    expect(first).toMatchObject({
+      id: expect.any(String),
+      title: "First todo",
+      completed: false,
+      createdAt: expect.any(String),
+      updatedAt: expect.any(String),
+    });
+    expect(second).toMatchObject({
+      id: expect.any(String),
+      title: "Second todo",
+      completed: true,
+      createdAt: expect.any(String),
+      updatedAt: expect.any(String),
+    });
+    // Ensure order by createdAt ascending
+    expect(new Date(first.createdAt).getTime()).toBeLessThanOrEqual(
+      new Date(second.createdAt).getTime(),
+    );
   });
 });

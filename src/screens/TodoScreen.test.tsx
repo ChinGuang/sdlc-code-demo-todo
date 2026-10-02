@@ -22,6 +22,9 @@ describe("TodoScreen", () => {
 
     renderAt("/todos");
 
+    // Header and link always present
+    expect(screen.getByRole("heading", { name: /todos/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /add todo/i })).toBeInTheDocument();
     expect(await screen.findByText(/loading todos/i)).toBeInTheDocument();
   });
 
@@ -38,6 +41,8 @@ describe("TodoScreen", () => {
 
     renderAt("/todos");
 
+    expect(screen.getByRole("heading", { name: /todos/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /add todo/i })).toBeInTheDocument();
     expect(await screen.findByText(/no todos/i)).toBeInTheDocument();
   });
 
@@ -54,6 +59,8 @@ describe("TodoScreen", () => {
 
     renderAt("/todos");
 
+    expect(screen.getByRole("heading", { name: /todos/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /add todo/i })).toBeInTheDocument();
     expect(await screen.findByText(/could not load/i)).toBeInTheDocument();
   });
 
@@ -76,6 +83,8 @@ describe("TodoScreen", () => {
 
     renderAt("/todos");
 
+    expect(screen.getByRole("heading", { name: /todos/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /add todo/i })).toBeInTheDocument();
     expect(await screen.findByText(/buy milk/i)).toBeInTheDocument();
     expect(await screen.findByText(/walk dog/i)).toBeInTheDocument();
   });

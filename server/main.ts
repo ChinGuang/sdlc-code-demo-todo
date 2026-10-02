@@ -1,6 +1,7 @@
 import { createApp } from "./app.js";
+import { registerTodosRoutes } from "./todos.js";
 
-const app = createApp();
+const app = createApp(registerTodosRoutes);
 
 const port = process.env.PORT ?? 3000;
 if (process.env.NODE_ENV !== "test") {
