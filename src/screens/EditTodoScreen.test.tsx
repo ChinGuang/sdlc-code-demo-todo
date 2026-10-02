@@ -57,13 +57,13 @@ describe("EditTodoScreen", () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(
-        async (url: string, options?: any) => {
+        async (url: string, options?: RequestInit) => {
           if (url.endsWith("/api/todos/123") && options?.method === "PATCH") {
             // Simulate network delay
             return await new Promise<void>(resolve => setTimeout(resolve, 10))
               .then(() => {
                 return new Response(
-                  JSON.stringify({ ...todo, ...JSON.parse(options.body) }),
+                  JSON.stringify({ ...todo, ...JSON.parse(options.body as string) }),
                   { status: 200 },
                 );
               });
