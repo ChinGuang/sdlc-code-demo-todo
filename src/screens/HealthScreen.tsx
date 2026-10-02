@@ -16,12 +16,12 @@ export function HealthScreen() {
 
   return (
     <section>
-      <h1 className="text-4xl font-semibold">App</h1>
+      <h1 className="text-4xl font-semibold">Todo App Health</h1>
       <p className="mt-4 text-slate-400">
         {error ??
           (health
             ? `API ${health.status}, database ${health.database}`
-            : "Checking the API…")}
+            : "Status: checking...")}
       </p>
     </section>
   );

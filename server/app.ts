@@ -30,6 +30,10 @@ export function createApp(register?: (app: Express) => void): Express {
   );
 
   register?.(app);
+  // 404 for unmatched routes
+  app.use((_request, response) => {
+    response.status(404).json({ error: "Not Found" });
+  });
   app.use(errorHandler);
   return app;
 }

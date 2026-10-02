@@ -10,6 +10,16 @@ describe("GET /health", () => {
     expect(response.body).toEqual({ status: "ok", database: "up" });
   });
 
+  it("reports degraded when database is down", async () => {
+    const { prisma } = await import("./prisma.js");
+    vi.spyOn(prisma, "$queryRaw").mockRejectedValueOnce(new Error());
+    const app = createApp();
+    const response = await request(app).get("/health");
+    expect(response.status).toBe(503);
+    expect(response.body).toEqual({ status: "degraded", database: "down" });
+    vi.restoreAllMocks();
+  });
+
   it("answers 404 for a route that does not exist", async () => {
     const response = await request(createApp()).get("/nope");
 
