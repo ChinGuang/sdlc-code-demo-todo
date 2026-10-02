@@ -2,6 +2,7 @@ import { Link, Route, Routes } from "react-router-dom";
 import { HealthScreen } from "./screens/HealthScreen.js";
 import { TodoScreen } from "./screens/TodoScreen.js";
 import { CreateTodoScreen } from "./screens/CreateTodoScreen.js";
+import { EditTodoScreen } from "./screens/EditTodoScreen.js";
 
 /**
  * Every screen of the UI Spec is a Route here, and screens move between each
@@ -21,6 +22,7 @@ export function App() {
           <Route path="/" element={<TodoScreen />} />
           <Route path="/health" element={<HealthScreen />} />
           <Route path="/create" element={<CreateTodoScreen />} />
+          <Route path="/edit/:id" element={<EditTodoScreen />} />
           <Route path="*" element={<p>This page does not exist.</p>} />
         </Routes>
       </main>

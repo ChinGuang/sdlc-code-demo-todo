@@ -51,6 +51,12 @@ export function TodoScreen() {
               <span className={todo.completed ? "line-through" : ""}>
                 {todo.title}
               </span>
+              <Link
+                to={`/edit/${todo.id}`}
+                className="ml-auto px-3 py-1 bg-slate-600 text-xs rounded hover:bg-slate-500 transition"
+              >
+                Edit
+              </Link>
             </li>
           ))}
         </ul>

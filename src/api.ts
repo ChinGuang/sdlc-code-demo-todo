@@ -28,3 +28,16 @@ export type Todo = {
 };
 
 export const createTodo = (title: string) => postJson<Todo>("/todos", { title });
+
+export const updateTodo = (id: string, updates: Partial<Pick<Todo, "title" | "completed">>) =>
+  fetch(`/api/todos/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(updates),
+  })
+    .then(async (response) => {
+      if (!response.ok) throw new Error(`PATCH /todos/${id} failed: ${response.status}`);
+      return (await response.json()) as Todo;
+    });
+
+export const getTodo = (id: string) => getJson<Todo>(`/todos/${id}`);

@@ -75,19 +75,56 @@ describe("CreateTodoScreen", () => {
   it("resets form and hides loading on success", async () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn(() =>
-        Promise.resolve({
-          ok: true,
-          json: () =>
-            Promise.resolve({
-              id: "1",
-              title: "Buy milk",
-              completed: false,
-              createdAt: "",
-              updatedAt: "",
-            }),
-        })
-      ),
+      vi.fn((url: RequestInfo | URL, init?: RequestInit) => {
+        const strUrl = String(url);
+        // Normalize by removing leading /api if present (since Vite proxy strips it? Actually our api.ts adds /api)
+        let path = strUrl;
+        if (path.startsWith("/api")) {
+          path = path.slice(4); // remove "/api"
+        }
+        const method = (init?.method ?? "GET").toUpperCase();
+
+        if (path === "/todos" && method === "POST") {
+          return Promise.resolve({
+            ok: true,
+            json: () =>
+              Promise.resolve({
+                id: "1",
+                title: "Buy milk",
+                completed: false,
+                createdAt: "",
+                updatedAt: "",
+              }),
+          });
+        }
+        if (path.startsWith("/todos/") && method === "PATCH") {
+          const id = path.split("/")[2];
+          return Promise.resolve({
+            ok: true,
+            json: () =>
+              Promise.resolve({
+                id,
+                title: "Buy milk",
+                completed: false,
+                createdAt: "",
+                updatedAt: "",
+              }),
+          });
+        }
+        if (path === "/todos" && method === "GET") {
+          // Return an empty array for the list of todos
+          return Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve([]),
+          });
+        }
+        // fallback
+        return Promise.resolve({
+          ok: false,
+          status: 404,
+          json: () => Promise.resolve({}),
+        });
+      }),
     );
 
     renderAt("/create");

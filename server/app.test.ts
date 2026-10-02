@@ -193,3 +193,162 @@ describe("POST /todos", () => {
     });
   });
 });
+
+describe("PATCH /todos/{id}", () => {
+  beforeEach(async () => {
+    await prisma.todo.deleteMany();
+  });
+
+  afterEach(async () => {
+    await prisma.todo.deleteMany();
+  });
+
+  it("updates the title of a todo", async () => {
+    const createResponse = await request(createApp(registerTodosRoutes))
+      .post("/todos")
+      .send({ title: "Original title" })
+      .set("Content-Type", "application/json");
+    expect(createResponse.status).toBe(201);
+    const todoId = createResponse.body.id;
+
+    const patchResponse = await request(createApp(registerTodosRoutes))
+      .patch(`/todos/${todoId}`)
+      .send({ title: "Updated title" })
+      .set("Content-Type", "application/json");
+
+    expect(patchResponse.status).toBe(200);
+    expect(patchResponse.body).toMatchObject({
+      id: todoId,
+      title: "Updated title",
+      completed: false,
+    });
+  });
+
+  it("updates the completed status of a todo", async () => {
+    const createResponse = await request(createApp(registerTodosRoutes))
+      .post("/todos")
+      .send({ title: "To be completed" })
+      .set("Content-Type", "application/json");
+    expect(createResponse.status).toBe(201);
+    const todoId = createResponse.body.id;
+
+    const patchResponse = await request(createApp(registerTodosRoutes))
+      .patch(`/todos/${todoId}`)
+      .send({ completed: true })
+      .set("Content-Type", "application/json");
+
+    expect(patchResponse.status).toBe(200);
+    expect(patchResponse.body).toMatchObject({
+      id: todoId,
+      title: "To be completed",
+      completed: true,
+    });
+  });
+
+  it("updates both title and completed status", async () => {
+    const createResponse = await request(createApp(registerTodosRoutes))
+      .post("/todos")
+      .send({ title: "Original", completed: false })
+      .set("Content-Type", "application/json");
+    expect(createResponse.status).toBe(201);
+    const todoId = createResponse.body.id;
+
+    const patchResponse = await request(createApp(registerTodosRoutes))
+      .patch(`/todos/${todoId}`)
+      .send({ title: "Updated", completed: true })
+      .set("Content-Type", "application/json");
+
+    expect(patchResponse.status).toBe(200);
+    expect(patchResponse.body).toMatchObject({
+      id: todoId,
+      title: "Updated",
+      completed: true,
+    });
+  });
+
+  it("returns 400 when request body is empty", async () => {
+    const createResponse = await request(createApp(registerTodosRoutes))
+      .post("/todos")
+      .send({ title: "Test" })
+      .set("Content-Type", "application/json");
+    expect(createResponse.status).toBe(201);
+    const todoId = createResponse.body.id;
+
+    const patchResponse = await request(createApp(registerTodosRoutes))
+      .patch(`/todos/${todoId}`)
+      .send({})
+      .set("Content-Type", "application/json");
+
+    expect(patchResponse.status).toBe(400);
+    expect(patchResponse.body).toEqual({ error: "Invalid request body" });
+  });
+
+  it("returns 400 when title is too long", async () => {
+    const createResponse = await request(createApp(registerTodosRoutes))
+      .post("/todos")
+      .send({ title: "Test" })
+      .set("Content-Type", "application/json");
+    expect(createResponse.status).toBe(201);
+    const todoId = createResponse.body.id;
+
+    const longTitle = "a".repeat(201);
+    const patchResponse = await request(createApp(registerTodosRoutes))
+      .patch(`/todos/${todoId}`)
+      .send({ title: longTitle })
+      .set("Content-Type", "application/json");
+
+    expect(patchResponse.status).toBe(400);
+    expect(patchResponse.body).toEqual({ error: "Invalid request body" });
+  });
+
+  it("returns 400 when title is empty string", async () => {
+    const createResponse = await request(createApp(registerTodosRoutes))
+      .post("/todos")
+      .send({ title: "Test" })
+      .set("Content-Type", "application/json");
+    expect(createResponse.status).toBe(201);
+    const todoId = createResponse.body.id;
+
+    const patchResponse = await request(createApp(registerTodosRoutes))
+      .patch(`/todos/${todoId}`)
+      .send({ title: "" })
+      .set("Content-Type", "application/json");
+
+    expect(patchResponse.status).toBe(400);
+    expect(patchResponse.body).toEqual({ error: "Invalid request body" });
+  });
+
+  it("returns 404 when todo does not exist", async () => {
+    const fakeId = "00000000-0000-0000-0000-000000000000";
+    const patchResponse = await request(createApp(registerTodosRoutes))
+      .patch(`/todos/${fakeId}`)
+      .send({ title: "Anything" })
+      .set("Content-Type", "application/json");
+
+    expect(patchResponse.status).toBe(404);
+    expect(patchResponse.body).toEqual({ error: "Todo not found" });
+  });
+
+  it("persists updates and reflects in GET /todos", async () => {
+    const createResponse = await request(createApp(registerTodosRoutes))
+      .post("/todos")
+      .send({ title: "Initial", completed: false })
+      .set("Content-Type", "application/json");
+    expect(createResponse.status).toBe(201);
+    const todoId = createResponse.body.id;
+
+    await request(createApp(registerTodosRoutes))
+      .patch(`/todos/${todoId}`)
+      .send({ title: "Changed", completed: true })
+      .set("Content-Type", "application/json");
+
+    const listResponse = await request(createApp(registerTodosRoutes)).get("/todos");
+    expect(listResponse.status).toBe(200);
+    expect(listResponse.body).toHaveLength(1);
+    expect(listResponse.body[0]).toMatchObject({
+      id: todoId,
+      title: "Changed",
+      completed: true,
+    });
+  });
+});
