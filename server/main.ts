@@ -1,6 +1,13 @@
 import { createApp } from "./app.js";
+import { registerTodosRoutes } from "./todos.js";
 
-const port = Number(process.env.PORT ?? 3000);
-createApp().listen(port, () => {
-  console.log(`API on http://127.0.0.1:${port}`);
-});
+const app = createApp(registerTodosRoutes);
+
+const port = process.env.PORT ?? 3000;
+if (process.env.NODE_ENV !== "test") {
+  app.listen(port, () => {
+    console.log(`Listening on http://localhost:${port}`);
+  });
+}
+
+export default app;

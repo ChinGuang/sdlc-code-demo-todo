@@ -29,7 +29,7 @@ describe("HealthScreen", () => {
     render(<HealthScreen />);
 
     expect(
-      await screen.findByText(/GET \/health failed: 503/),
+      await screen.findByText("GET /health failed: 503"),
     ).toBeInTheDocument();
   });
 });
