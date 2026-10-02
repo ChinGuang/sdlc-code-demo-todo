@@ -109,3 +109,87 @@ describe("GET /todos", () => {
     );
   });
 });
+
+describe("POST /todos", () => {
+  beforeEach(async () => {
+    await prisma.todo.deleteMany();
+  });
+
+  afterEach(async () => {
+    await prisma.todo.deleteMany();
+  });
+
+  it("creates a todo with valid title", async () => {
+    const response = await request(createApp(registerTodosRoutes))
+      .post("/todos")
+      .send({ title: "Buy milk" })
+      .set("Content-Type", "application/json");
+
+    expect(response.status).toBe(201);
+    expect(response.body).toMatchObject({
+      id: expect.any(String),
+      title: "Buy milk",
+      completed: false,
+      createdAt: expect.any(String),
+      updatedAt: expect.any(String),
+    });
+  });
+
+  it("returns 400 when title is missing", async () => {
+    const response = await request(createApp(registerTodosRoutes))
+      .post("/todos")
+      .send({})
+      .set("Content-Type", "application/json");
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({ error: "Invalid request body" });
+  });
+
+  it("returns 400 when title is empty string", async () => {
+    const response = await request(createApp(registerTodosRoutes))
+      .post("/todos")
+      .send({ title: "" })
+      .set("Content-Type", "application/json");
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({ error: "Invalid request body" });
+  });
+
+  it("returns 400 when title exceeds 200 characters", async () => {
+    const longTitle = "a".repeat(201);
+    const response = await request(createApp(registerTodosRoutes))
+      .post("/todos")
+      .send({ title: longTitle })
+      .set("Content-Type", "application/json");
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({ error: "Invalid request body" });
+  });
+
+  it("returns 400 when non-JSON body", async () => {
+    const response = await request(createApp(registerTodosRoutes))
+      .post("/todos")
+      .send("not json")
+      .set("Content-Type", "application/json");
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({ error: "Bad Request" });
+  });
+
+  it("created todo appears in the list", async () => {
+    const createResponse = await request(createApp(registerTodosRoutes))
+      .post("/todos")
+      .send({ title: "Test todo" })
+      .set("Content-Type", "application/json");
+    expect(createResponse.status).toBe(201);
+
+    const listResponse = await request(createApp(registerTodosRoutes)).get("/todos");
+    expect(listResponse.status).toBe(200);
+    expect(listResponse.body).toHaveLength(1);
+    expect(listResponse.body[0]).toMatchObject({
+      id: createResponse.body.id,
+      title: "Test todo",
+      completed: false,
+    });
+  });
+});
