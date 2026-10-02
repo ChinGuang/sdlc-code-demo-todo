@@ -41,3 +41,12 @@ export const updateTodo = (id: string, updates: Partial<Pick<Todo, "title" | "co
     });
 
 export const getTodo = (id: string) => getJson<Todo>(`/todos/${id}`);
+
+export const deleteTodo = (id: string) =>
+  fetch(`/api/todos/${id}`, {
+    method: "DELETE",
+  })
+    .then(async (response) => {
+      if (!response.ok) throw new Error(`DELETE /todos/${id} failed: ${response.status}`);
+      // 204 No Content, no JSON body
+    });

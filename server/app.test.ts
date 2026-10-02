@@ -352,3 +352,51 @@ describe("PATCH /todos/{id}", () => {
     });
   });
 });
+
+describe("DELETE /todos/{id}", () => {
+  beforeEach(async () => {
+    await prisma.todo.deleteMany();
+  });
+
+  afterEach(async () => {
+    await prisma.todo.deleteMany();
+  });
+
+  it("deletes a todo and returns 204", async () => {
+    const createResponse = await request(createApp(registerTodosRoutes))
+      .post("/todos")
+      .send({ title: "To delete" })
+      .set("Content-Type", "application/json");
+    expect(createResponse.status).toBe(201);
+    const todoId = createResponse.body.id;
+
+    const deleteResponse = await request(createApp(registerTodosRoutes))
+      .delete(`/todos/${todoId}`)
+      .set("Content-Type", "application/json");
+
+    expect(deleteResponse.status).toBe(204);
+
+    const listResponse = await request(createApp(registerTodosRoutes)).get("/todos");
+    expect(listResponse.status).toBe(200);
+    expect(listResponse.body).toEqual([]);
+  });
+
+  it("returns 404 when todo does not exist", async () => {
+    const fakeId = "00000000-0000-0000-0000-000000000000";
+    const deleteResponse = await request(createApp(registerTodosRoutes))
+      .delete(`/todos/${fakeId}`)
+      .set("Content-Type", "application/json");
+
+    expect(deleteResponse.status).toBe(404);
+    expect(deleteResponse.body).toEqual({ error: "Todo not found" });
+  });
+
+  it("returns 400 when id is not a valid UUID", async () => {
+    const deleteResponse = await request(createApp(registerTodosRoutes))
+      .delete("/todos/not-a-uuid")
+      .set("Content-Type", "application/json");
+
+    expect(deleteResponse.status).toBe(400);
+    expect(deleteResponse.body).toEqual({ error: "Invalid todo id" });
+  });
+});

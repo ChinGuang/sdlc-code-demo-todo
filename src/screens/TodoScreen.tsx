@@ -53,9 +53,15 @@ export function TodoScreen() {
               </span>
               <Link
                 to={`/edit/${todo.id}`}
-                className="ml-auto px-3 py-1 bg-slate-600 text-xs rounded hover:bg-slate-500 transition"
+                className="px-3 py-1 bg-slate-600 text-xs rounded hover:bg-slate-500 transition mr-2"
               >
                 Edit
+              </Link>
+              <Link
+                to={`/delete/${todo.id}`}
+                className="px-3 py-1 bg-slate-600 text-xs rounded hover:bg-slate-500 transition"
+              >
+                Delete
               </Link>
             </li>
           ))}

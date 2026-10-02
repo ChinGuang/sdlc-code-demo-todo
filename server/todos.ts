@@ -70,4 +70,27 @@ export function registerTodosRoutes(app: Express) {
       response.json(updated);
     }),
   );
+
+  app.delete(
+    "/todos/:id",
+    route(async (request, response) => {
+      const idParam = request.params.id;
+      if (typeof idParam !== "string" || !z.string().uuid().safeParse(idParam).success) {
+        response.status(400).json({ error: "Invalid todo id" });
+        return;
+      }
+      const id = idParam;
+      const todo = await prisma.todo.findUnique({
+        where: { id },
+      });
+      if (!todo) {
+        response.status(404).json({ error: "Todo not found" });
+        return;
+      }
+      await prisma.todo.delete({
+        where: { id },
+      });
+      response.status(204).send();
+    }),
+  );
 }
